@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Campeões - League of Legends</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .champ-card { cursor: pointer; transition: 0.3s; }
+        .champ-card:hover { transform: scale(1.05); }
+        .champ-img { height: 120px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR RESPONSIVA -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">League of Legends</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+    <li class="nav-item"><a class="nav-link active" href="campeoes.html">Campeões</a></li>
+        <li class="nav-item"><a class="nav-link" href="items.html">Itens</a></li>
+        <li class="nav-item"><a class="nav-link" href="quiz.html">Quiz</a></li>
+        <li class="nav-item"><a class="nav-link"href="contatos.html">Contatos</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+    
+    <h2>Campeões</h2>
+
+    <!-- Campo de busca -->
+    <input type="text" id="searchInput" class="form-control" placeholder="Buscar campeão...">
+
+    <!-- Lista dos cards -->
+    <div class="row mt-4" id="champList"></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="champModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content bg-dark text-white">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalName"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <img id="modalImage" class="img-fluid rounded mb-3">
+
+        <h4 id="modalTitle"></h4>
+        <p id="modalLore"></p>
+
+        <h3 class="mt-4">Habilidades</h3>
+        <div id="skillsContainer"></div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ------------------ JAVASCRIPT ------------------ -->
+
+<script>
+let champions = {}; // Armazenará todos os campeões carregados
+
+// ---------------------------------------------------------------------
+// CARREGAR TODOS OS CAMPEÕES
+// ---------------------------------------------------------------------
+async function loadChampions() {
+    try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/cdn/14.9.1/data/pt_BR/champion.json");
+        const data = await response.json();
+        champions = data.data;
+
+        renderChampionCards(champions);
+
+    } catch (error) {
+        console.error("Erro ao carregar campeões:", error);
+    }
+}
+
+loadChampions();
+
+
+
+// ---------------------------------------------------------------------
+// GERAR CARDS
+// ---------------------------------------------------------------------
+function renderChampionCards(champs) {
+    const container = document.getElementById("champList");
+    container.innerHTML = "";
+
+    const champArray = Object.values(champs);
+
+    if (champArray.length === 0) {
+        container.innerHTML = "<p class='text-center text-muted'>Nenhum campeão encontrado.</p>";
+        return;
+    }
+
+    champArray.forEach(champ => {
+        container.innerHTML += `
+            <div class="col-md-3 mb-4 champ-card" onclick="openChampion('${champ.id}')">
+                <div class="card">
+                    <img src="https://ddragon.leagueoflegends.com/cdn/14.9.1/img/champion/${champ.id}.png"
+                         class="card-img-top champ-img">
+                    <div class="card-body">
+                        <h5 class="card-title">${champ.name}</h5>
+                        <p class="card-text text-secondary">${champ.title}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+
+
+// ---------------------------------------------------------------------
+// CAMPO DE BUSCA (melhorado com debounce)
+// ---------------------------------------------------------------------
+let searchTimeout;
+
+document.getElementById("searchInput").addEventListener("input", function() {
+    clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(() => {
+        const search = this.value.toLowerCase();
+        const filtered = {};
+
+        for (const champ of Object.values(champions)) {
+            if (champ.name.toLowerCase().includes(search)) {
+                filtered[champ.id] = champ;
+            }
+        }
+
+        renderChampionCards(filtered);
+
+    }, 200); // debounce (evita rodar função a cada tecla)
+});
+
+
+
+// ---------------------------------------------------------------------
+// ABRIR DETALHES DO CAMPEÃO
+// ---------------------------------------------------------------------
+async function openChampion(champId) {
+
+    try {
+        const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/14.9.1/data/pt_BR/champion/${champId}.json`);
+        const data = await response.json();
+
+        const champ = data.data[champId];
+
+        // Preencher modal
+        document.getElementById("modalName").innerText = champ.name;
+        document.getElementById("modalTitle").innerText = champ.title;
+        document.getElementById("modalLore").innerHTML = champ.lore;
+
+        document.getElementById("modalImage").src =
+            `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`;
+
+        // Habilidades
+        const skillsDiv = document.getElementById("skillsContainer");
+        skillsDiv.innerHTML = "";
+
+        const abilities = [
+            { key: "Passiva", data: champ.passive },
+            { key: "Q", data: champ.spells[0] },
+            { key: "W", data: champ.spells[1] },
+            { key: "E", data: champ.spells[2] },
+            { key: "R", data: champ.spells[3] }
+        ];
+
+        abilities.forEach(skill => {
+            skillsDiv.innerHTML += `
+                <div class="d-flex align-items-start mb-3">
+                    <img src="https://ddragon.leagueoflegends.com/cdn/14.9.1/img/${skill.key === 'Passiva' ? 'passive' : 'spell'}/${skill.data.image.full}"
+                         width="60" class="me-3">
+                    <div>
+                        <h5>${skill.key}: ${skill.data.name}</h5>
+                        <p>${skill.data.description}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        new bootstrap.Modal(document.getElementById('champModal')).show();
+
+    } catch (error) {
+        console.error("Erro ao carregar detalhes do campeão:", error);
+    }
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

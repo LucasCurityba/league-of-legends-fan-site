@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Quiz - LoL</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        background: #0a0a0a;
+        color: #fff;
+    }
+    .quiz-card {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 15px;
+        margin-top: 30px;
+        text-align: center;
+    }
+    .btn-quiz {
+        margin: 10px;
+        min-width: 120px;
+    }
+    .feedback {
+        margin-top: 15px;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">League of Legends</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="campeoes.html">Campeões</a></li>
+        <li class="nav-item"><a class="nav-link" href="items.html">Items</a></li>
+        <li class="nav-item"><a class="nav-link active" href="quiz.html">Quiz</a></li>
+        <li class="nav-item"><a class="nav-link" href="contatos.html">Contatos</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- QUIZ -->
+<div class="container">
+    <div class="quiz-card mx-auto" style="max-width:600px;">
+        <h3 id="question">Carregando pergunta...</h3>
+        <div id="answers" class="mt-4"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn btn-warning mt-3" id="nextBtn" style="display:none;">Próxima pergunta</button>
+    </div>
+</div>
+
+<script>
+// ==== QUIZ DATA ====
+const quiz = [
+    {
+        question: 'Qual campeão é conhecido por dizer "HASAGI"?',
+        answers: ['Yasuo', 'Teemo', 'Garen', 'Zed'],
+        correct: 0
+    },
+    {
+        question: 'Qual é a ultimate de Lux?',
+        answers: ['Final Spark', 'Crescendo', 'Dragon Strike', 'Bullet Time'],
+        correct: 0
+    },
+    {
+        question: 'Qual campeão é considerado suporte com escudo?',
+        answers: ['Leona', 'Janna', 'Blitzcrank', 'Thresh'],
+        correct: 1
+    },
+    {
+        question: 'Qual o darkin e o mais forte ?',
+        answers: ['Aatrox', 'Rhaast', 'Varus', 'Kayn'],
+        correct: 0
+    }
+];
+
+let current = 0;
+
+// ==== FUNÇÃO PARA CARREGAR PERGUNTA ====
+function loadQuestion() {
+    document.getElementById('feedback').innerText = '';
+    document.getElementById('nextBtn').style.display = 'none';
+    const q = quiz[current];
+    document.getElementById('question').innerText = q.question;
+
+    const answersDiv = document.getElementById('answers');
+    answersDiv.innerHTML = '';
+
+    q.answers.forEach((ans, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary btn-quiz';
+        btn.innerText = ans;
+        btn.onclick = () => checkAnswer(index);
+        answersDiv.appendChild(btn);
+    });
+}
+
+// ==== FUNÇÃO PARA CHECAR RESPOSTA ====
+function checkAnswer(index) {
+    const correctIndex = quiz[current].correct;
+    const feedback = document.getElementById('feedback');
+
+    if(index === correctIndex){
+        feedback.innerText = '✅ Correto!';
+        feedback.style.color = '#28a745';
+    } else {
+        feedback.innerText = `❌ Errado! A resposta correta é "${quiz[current].answers[correctIndex]}".`;
+        feedback.style.color = '#dc3545';
+    }
+
+    // Bloqueia todos os botões
+    document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
+    document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+// ==== PRÓXIMA PERGUNTA ====
+document.getElementById('nextBtn').onclick = () => {
+    current++;
+    if(current < quiz.length){
+        loadQuestion();
+    } else {
+        document.querySelector('.quiz-card').innerHTML = `<h3>🎉 Você concluiu o quiz!</h3>`;
+    }
+}
+
+// ==== CARREGAR PRIMEIRA PERGUNTA ====
+loadQuestion();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
