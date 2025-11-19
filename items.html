@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Itens Resumidos - LoL</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<style>
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: Arial, sans-serif;
+  }
+  .items-container {
+    margin-top: 50px;
+  }
+  .item-card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+  }
+  .item-img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 5px;
+  }
+  .item-name {
+    font-weight: bold;
+    color: #ffcc00;
+    font-size: 0.9rem;
+  }
+  .item-gold {
+    font-size: 0.85rem;
+    color: #ccc;
+  }
+  .navbar-dark .navbar-brand {
+    color: #ffcc00;
+  }
+  .navbar-dark .nav-link.active {
+    color: #ffcc00;
+  }
+  .loading {
+    text-align: center;
+    margin: 20px 0;
+    color: #ffcc00;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">League of Legends</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="campeoes.html">Campeões</a></li>
+        <li class="nav-item"><a class="nav-link active" href="items.html">Items</a></li>
+        <li class="nav-item"><a class="nav-link" href="quiz.html">Quiz</a></li>
+        <li class="nav-item"><a class="nav-link" href="contatos.html">Contatos</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ITEMS -->
+<div class="container items-container">
+  <div class="row" id="itemsGrid">
+    <!-- Itens resumidos serão inseridos aqui via JS -->
+  </div>
+  <div id="loading" class="loading">Carregando itens...</div>
+</div>
+
+<script>
+async function fetchItems() {
+  try {
+    const versionsRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    const versions = await versionsRes.json();
+    const latestVersion = versions[0];
+
+    const itemsRes = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/pt_BR/item.json`);
+    const itemsJson = await itemsRes.json();
+
+    return { items: Object.values(itemsJson.data), version: latestVersion };
+  } catch (err) {
+    console.error('Erro ao buscar itens:', err);
+    return null;
+  }
+}
+
+function renderItems(items, version) {
+  const grid = document.getElementById('itemsGrid');
+  grid.innerHTML = '';
+
+  items.forEach(item => {
+    const col = document.createElement('div');
+    col.className = 'col-4 col-sm-3 col-md-2 col-lg-1';
+
+    const card = document.createElement('div');
+    card.className = 'item-card';
+
+    const img = document.createElement('img');
+    img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/${item.image.full}`;
+    img.alt = item.name;
+    img.className = 'item-img';
+
+    const name = document.createElement('div');
+    name.className = 'item-name';
+    name.innerText = item.name;
+
+    const gold = document.createElement('div');
+    gold.className = 'item-gold';
+    gold.innerText = `${item.gold.base} ouro`;
+
+    card.appendChild(img);
+    card.appendChild(name);
+    card.appendChild(gold);
+    col.appendChild(card);
+    grid.appendChild(col);
+  });
+
+  document.getElementById('loading').style.display = 'none';
+}
+
+// Inicialização
+fetchItems().then(result => {
+  if (result) {
+    renderItems(result.items, result.version);
+  } else {
+    document.getElementById('loading').innerText = 'Falha ao carregar itens.';
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
